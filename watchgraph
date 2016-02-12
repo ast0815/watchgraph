@@ -56,7 +56,7 @@ echo $CMD
 
 TMPFILE=`mktemp`
 
-PLOTCMD="set term dumb $S; set xdata time; set timefmt \"%H:%M:%S\"; set format x \"%H:%M:%S\"; plot \"$TMPFILE\" using 1:2 title \"#1\""
+PLOTCMD="set term dumb $S; set xdata time; set timefmt \"%H:%M:%S\"; set format x \"%H:%M:%S\"; plot \"$TMPFILE\" using 1:2 with linespoints title \"#1\""
 
 eval $CMD | sed -e "s/^/$(date +%H:%M:%S) /" >> $TMPFILE
 
@@ -67,7 +67,7 @@ for dump in $COLUMNS
 do
     if [ $i -gt 2 ]
     then
-        PLOTCMD="$PLOTCMD, \"\" using 1:$i title \"$(( $i - 1 ))\""
+        PLOTCMD="$PLOTCMD, \"\" using 1:$i with linespoints title \"$(( $i - 1 ))\""
     fi
     i=$(( $i + 1 ))
 done
