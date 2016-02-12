@@ -53,7 +53,7 @@ TMPFILE=`mktemp`
 
 PLOTCMD="set term dumb; set xdata time; set timefmt \"%H:%M:%S\"; set format x \"%H:%M:%S\"; plot \"$TMPFILE\" using 1:2 title \"#1\""
 
-$CMD | ts '%H:%M:%S' >> $TMPFILE
+$CMD | sed -e "s/^/$(date +%H:%M:%S) /" >> $TMPFILE
 
 COLUMNS=`tail -n 1 $TMPFILE`
 i=1
@@ -71,6 +71,6 @@ gnuplot -e "$PLOTCMD"
 
 while sleep $N
 do
-    $CMD | ts '%H:%M:%S' >> $TMPFILE
+    $CMD | sed -e "s/^/$(date +%H:%M:%S) /" >> $TMPFILE
     gnuplot -e "$PLOTCMD"
 done
