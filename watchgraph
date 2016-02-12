@@ -2,7 +2,7 @@
 
 USAGE=`cat <<EOF
 Usage:
-    $0 [-n <N>] <command>
+    $0 [-n <N>] [-s <C>,<L>] <command>
 
 Runs <command> every <N> seconds and plots
 the output as a graph in the shell using gnuplot.
@@ -11,12 +11,14 @@ The output of <command> must be a list of numbers
 separated by whitespaces.
 
 Parameters:
-    <N> :   Seconds between each plot. Default: 10
+    <N>     :   Seconds between each plot. Default: 10
+    <C>,<L> :   Size of the plot in columns and lines. Default: 79,24
 EOF
 `
 
 # Default values
 N=10
+S=79,24
 
 # No parameters?
 if [ $# -lt 1 ]
@@ -28,11 +30,14 @@ then
 fi
 
 # Get options
-while getopts "n:" opt
+while getopts "n:s:" opt
 do
     case $opt in
         n)
             N=$OPTARG
+            ;;
+        s)
+            S=$OPTARG
             ;;
         \?)
             echo "Invalid option: -$OPTARG"
@@ -51,7 +56,7 @@ echo $CMD
 
 TMPFILE=`mktemp`
 
-PLOTCMD="set term dumb; set xdata time; set timefmt \"%H:%M:%S\"; set format x \"%H:%M:%S\"; plot \"$TMPFILE\" using 1:2 title \"#1\""
+PLOTCMD="set term dumb $S; set xdata time; set timefmt \"%H:%M:%S\"; set format x \"%H:%M:%S\"; plot \"$TMPFILE\" using 1:2 title \"#1\""
 
 eval $CMD | sed -e "s/^/$(date +%H:%M:%S) /" >> $TMPFILE
 
