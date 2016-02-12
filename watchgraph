@@ -1,0 +1,76 @@
+#!/bin/bash
+
+USAGE=`cat <<EOF
+Usage:
+    $0 [-n <N>] <command>
+
+Runs <command> every <N> seconds and plots
+the output as a graph in the shell using gnuplot.
+
+The output of <command> must be a list of numbers
+separated by whitespaces.
+
+Parameters:
+    <N> :   Seconds between each plot. Default: 10
+EOF
+`
+
+# Default values
+N=10
+
+# No parameters?
+if [ $# -lt 1 ]
+then
+    echo "Not enough parameters."
+    echo
+    echo "$USAGE"
+    exit 1
+fi
+
+# Get options
+while getopts "n:" opt
+do
+    case $opt in
+        n)
+            N=$OPTARG
+            ;;
+        \?)
+            echo "Invalid option: -$OPTARG"
+            echo
+            echo "$USAGE"
+            exit 1
+            ;;
+    esac
+done
+
+# Shift away parsed options
+shift $((OPTIND-1))
+CMD="$@"
+
+echo $CMD
+
+TMPFILE=`mktemp`
+
+PLOTCMD="set term dumb; set xdata time; set timefmt \"%H:%M:%S\"; set format x \"%H:%M:%S\"; plot \"$TMPFILE\" using 1:2 title \"#1\""
+
+$CMD | ts '%H:%M:%S' >> $TMPFILE
+
+COLUMNS=`tail -n 1 $TMPFILE`
+i=1
+
+for dump in $COLUMNS
+do
+    if [ $i -gt 2 ]
+    then
+        PLOTCMD="$PLOTCMD, \"\" using 1:$i title \"$(( $i - 1 ))\""
+    fi
+    n=$(( $i + 1 ))
+done
+
+gnuplot -e "$PLOTCMD"
+
+while sleep $N
+do
+    $CMD | ts '%H:%M:%S' >> $TMPFILE
+    gnuplot -e "$PLOTCMD"
+done
