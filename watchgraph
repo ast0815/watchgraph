@@ -64,7 +64,7 @@ do
     then
         PLOTCMD="$PLOTCMD, \"\" using 1:$i title \"$(( $i - 1 ))\""
     fi
-    n=$(( $i + 1 ))
+    i=$(( $i + 1 ))
 done
 
 gnuplot -e "$PLOTCMD"
