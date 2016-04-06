@@ -58,9 +58,9 @@ TMPFILE=`mktemp`
 
 if [ $N -ge 60 ]
 then
-    PLOTCMD="set term dumb size $S nofeed; set xdata time; set timefmt \"%Y-%m-%d_%H:%M:%S\"; set format x \"%H:%M\"; plot \"$TMPFILE\" using 1:2 with linespoints title \"N°1\""
+    PLOTCMD="set term dumb size $S nofeed; set xdata time; set timefmt \"%Y-%m-%d_%H:%M:%S\"; set format x \"%H:%M\"; plot \"$TMPFILE\" using 1:2 with linespoints title \"No1\""
 else
-    PLOTCMD="set term dumb size $S nofeed; set xdata time; set timefmt \"%Y-%m-%d_%H:%M:%S\"; set format x \"%M:%S\"; plot \"$TMPFILE\" using 1:2 with linespoints title \"N°1\""
+    PLOTCMD="set term dumb size $S nofeed; set xdata time; set timefmt \"%Y-%m-%d_%H:%M:%S\"; set format x \"%M:%S\"; plot \"$TMPFILE\" using 1:2 with linespoints title \"No1\""
 fi
 
 eval $CMD | sed -e "s/^/$(date +%Y-%m-%d_%H:%M:%S) /" >$TMPFILE
@@ -72,7 +72,7 @@ for dump in $COLUMNS
 do
     if [ $i -gt 2 ]
     then
-        PLOTCMD="$PLOTCMD, \"\" using 1:$i with linespoints title \"N°$(( $i - 1 ))\""
+        PLOTCMD="$PLOTCMD, \"\" using 1:$i with linespoints title \"No$(( $i - 1 ))\""
     fi
     i=$(( $i + 1 ))
 done
