@@ -63,7 +63,7 @@ else
     PLOTCMD="set term dumb size $S nofeed; set xdata time; set timefmt \"%Y-%m-%d_%H:%M:%S\"; set format x \"%M:%S\"; plot \"$TMPFILE\" using 1:2 with linespoints title \"No1\""
 fi
 
-eval $CMD | sed -e "s/^/$(date +%Y-%m-%d_%H:%M:%S) /" >$TMPFILE
+eval "$CMD" | sed -e "s/^/$(date +%Y-%m-%d_%H:%M:%S) /" >$TMPFILE
 
 COLUMNS=`tail -n 1 $TMPFILE`
 i=1
@@ -81,6 +81,6 @@ gnuplot -e "$PLOTCMD"
 
 while sleep $N
 do
-    eval $CMD | sed -e "s/^/$(date +%Y-%m-%d_%H:%M:%S) /" >> $TMPFILE
+    eval "$CMD" | sed -e "s/^/$(date +%Y-%m-%d_%H:%M:%S) /" >> $TMPFILE
     gnuplot -e "$PLOTCMD"
 done
