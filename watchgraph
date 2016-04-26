@@ -2,7 +2,7 @@
 
 USAGE=`cat <<EOF
 Usage:
-    $0 [-n <N>] [-s <C>,<L>] <command>
+    $0 [-n <N>] [-s <C>,<L>] [-m <M>] <command>
 
 Runs <command> every <N> seconds and plots
 the output as a graph in the shell using gnuplot.
@@ -13,12 +13,14 @@ separated by whitespaces.
 Parameters:
     <N>     :   Seconds between each plot. Default: 10
     <C>,<L> :   Size of the plot in columns and lines. Default: 79,24
+    <M>     :   Maximum number of data points to plot. Defaul: 0 = no limit
 EOF
 `
 
 # Default values
 N=10
 S=79,24
+M=0
 
 # No parameters?
 if [ $# -lt 1 ]
@@ -30,7 +32,7 @@ then
 fi
 
 # Get options
-while getopts "n:s:" opt
+while getopts "n:s:m:" opt
 do
     case $opt in
         n)
@@ -38,6 +40,9 @@ do
             ;;
         s)
             S=$OPTARG
+            ;;
+        m)
+            M=$OPTARG
             ;;
         \?)
             echo "Invalid option: -$OPTARG"
@@ -83,5 +88,11 @@ gnuplot -e "$PLOTCMD"
 while sleep $N
 do
     eval "$CMD" | sed -e "s/^/$(date +%Y-%m-%d_%H:%M:%S) /" >> $TMPFILE
+    if [[ $M -gt 0 ]]
+    then
+        TMPTMP=`mktemp`
+        tail -n $M $TMPFILE >$TMPTMP
+        mv -f $TMPTMP $TMPFILE
+    fi
     gnuplot -e "$PLOTCMD"
 done
