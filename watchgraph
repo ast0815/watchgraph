@@ -55,6 +55,7 @@ CMD="$@"
 echo $CMD
 
 TMPFILE=`mktemp`
+trap 'rm $TMPFILE' EXIT
 
 if [ $N -ge 60 ]
 then
