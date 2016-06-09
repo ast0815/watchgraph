@@ -64,7 +64,7 @@ do
     CMD="$CMD echo -n \"\$( $C ) \";"
     echo $C
 done
-echo
+CMD="$CMD echo;"
 echo +++++++++++++++++++++++++++++
 
 TMPFILE=`mktemp`
