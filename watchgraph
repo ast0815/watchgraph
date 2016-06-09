@@ -2,7 +2,7 @@
 
 USAGE=`cat <<EOF
 Usage:
-    $0 [-n <N>] [-s <C>,<L>] [-m <M>] <command>
+    $0 [-n <N>] [-s <C>,<L>] [-m <M>] <command> [<command> ...]
 
 Runs <command> every <N> seconds and plots
 the output as a graph in the shell using gnuplot.
@@ -55,9 +55,17 @@ done
 
 # Shift away parsed options
 shift $((OPTIND-1))
-CMD="$@"
 
-echo $CMD
+# Build command
+CMD=""
+echo +++++++++++++++++++++++++++++
+for C in "$@"
+do
+    CMD="$CMD echo -n \"\$( $C ) \";"
+    echo $C
+done
+echo
+echo +++++++++++++++++++++++++++++
 
 TMPFILE=`mktemp`
 trap 'rm $TMPFILE' EXIT
