@@ -2,18 +2,19 @@
 
 USAGE=`cat <<EOF
 Usage:
-    $0 [-n <N>] [-s <C>,<L>] [-m <M>] <command> [<command> ...]
+    $0 [-n <N>] [-s <C>,<L>] [-m <M>] [-y <Y>] <command> [<command> ...]
 
-Runs <command> every <N> seconds and plots
-the output as a graph in the shell using gnuplot.
+Runs <command> every <N> seconds and plots the output as a graph in the shell
+using gnuplot.
 
-The output of <command> must be a list of numbers
-separated by whitespaces.
+The output of <command> must be a list of numbers separated by whitespaces.
 
 Parameters:
     <N>     :   Seconds between each plot. Default: 10
     <C>,<L> :   Size of the plot in columns and lines. Default: 79,24
     <M>     :   Maximum number of data points to plot. Defaul: 0 = no limit
+    <Y>     :   A list in the form "121112" determining which y-axis to use
+                for each column of input data
 EOF
 `
 
@@ -21,6 +22,7 @@ EOF
 N=10
 S=79,24
 M=0
+Y=
 
 # No parameters?
 if [ $# -lt 1 ]
@@ -32,7 +34,7 @@ then
 fi
 
 # Get options
-while getopts "n:s:m:" opt
+while getopts "n:s:m:y:" opt
 do
     case $opt in
         n)
@@ -43,6 +45,9 @@ do
             ;;
         m)
             M=$OPTARG
+            ;;
+        y)
+            Y=$OPTARG
             ;;
         \?)
             echo "Invalid option: -$OPTARG"
@@ -58,11 +63,13 @@ shift $((OPTIND-1))
 
 # Build command
 CMD=""
+i=1
 echo +++++++++++++++++++++++++++++
 for C in "$@"
 do
     CMD="$CMD echo -n \"\$( $C ) \";"
     echo $C
+    i=$(( i+1 ))
 done
 CMD="$CMD echo;"
 echo +++++++++++++++++++++++++++++
@@ -72,25 +79,50 @@ trap 'rm $TMPFILE' EXIT
 
 if [ $N -ge 60 ]
 then
-    PLOTCMD="set term dumb size $S nofeed; set xdata time; set timefmt \"%Y-%m-%d_%H:%M:%S\"; set format x \"%H:%M\"; plot \"$TMPFILE\" using 1:2 with linespoints title \"No1\""
+    XFMT='"%H:%M"'
 else
-    PLOTCMD="set term dumb size $S nofeed; set xdata time; set timefmt \"%Y-%m-%d_%H:%M:%S\"; set format x \"%M:%S\"; plot \"$TMPFILE\" using 1:2 with linespoints title \"No1\""
+    XFMT='"%M:%H"'
 fi
 
+# First plot is for second axis?
+if [[ "${Y:0:1}" == '2' ]]
+then
+    axes='x1y2'
+else
+    axes='x1y1'
+fi
+
+# Any second axes at all?
+if [[ "$Y" == *'2'* ]]
+then
+    PLOTCMD="set y2tics; set ytics nomirror; set autoscale y; set autoscale y2;"
+else
+    PLOTCMD=""
+fi
+
+PLOTCMD="$PLOTCMD set term dumb size $S nofeed; set xdata time; set timefmt \"%Y-%m-%d_%H:%M:%S\"; set format x $XFMT; plot \"$TMPFILE\" using 1:2 axes $axes with linespoints title \"No1\""
+
 eval "$CMD" | sed -e "s/^/$(date +%Y-%m-%d_%H:%M:%S) /" >$TMPFILE
-
 COLUMNS=`tail -n 1 $TMPFILE`
-i=1
-
+i=0
 for dump in $COLUMNS
 do
-    if [ $i -gt 2 ]
+    if [ $i -gt 1 ]
     then
-        PLOTCMD="$PLOTCMD, \"\" using 1:$i with linespoints title \"No$(( $i - 1 ))\""
+        # Plot is for second axis?
+        if [[ "${Y:$((i-1)):1}" == '2' ]]
+        then
+            axes='x1y2'
+        else
+            axes='x1y1'
+        fi
+        PLOTCMD="$PLOTCMD, \"\" using 1:$((i+1)) axes $axes with linespoints title \"No$i\""
     fi
     i=$(( $i + 1 ))
 done
 
+echo $PLOTCMD
+echo $Y2
 gnuplot -e "$PLOTCMD"
 
 while sleep $N
