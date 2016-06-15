@@ -88,8 +88,10 @@ fi
 if [[ "${Y:0:1}" == '2' ]]
 then
     axes='x1y2'
+    title="\" No1>\""
 else
     axes='x1y1'
+    title="\" No1 \""
 fi
 
 # Any second axes at all?
@@ -100,7 +102,7 @@ else
     PLOTCMD=""
 fi
 
-PLOTCMD="$PLOTCMD set term dumb size $S nofeed; set xdata time; set timefmt \"%Y-%m-%d_%H:%M:%S\"; set format x $XFMT; plot \"$TMPFILE\" using 1:2 axes $axes with linespoints title \"No1\""
+PLOTCMD="$PLOTCMD set term dumb size $S nofeed; set key left top; set xdata time; set timefmt \"%Y-%m-%d_%H:%M:%S\"; set format x $XFMT; plot \"$TMPFILE\" using 1:2 axes $axes with linespoints title $title"
 
 eval "$CMD" | sed -e "s/^/$(date +%Y-%m-%d_%H:%M:%S) /" >$TMPFILE
 COLUMNS=`tail -n 1 $TMPFILE`
@@ -113,10 +115,12 @@ do
         if [[ "${Y:$((i-1)):1}" == '2' ]]
         then
             axes='x1y2'
+            title="\" No$((i))>\""
         else
             axes='x1y1'
+            title="\" No$((i)) \""
         fi
-        PLOTCMD="$PLOTCMD, \"\" using 1:$((i+1)) axes $axes with linespoints title \"No$i\""
+        PLOTCMD="$PLOTCMD, \"\" using 1:$((i+1)) axes $axes with linespoints title $title"
     fi
     i=$(( $i + 1 ))
 done
